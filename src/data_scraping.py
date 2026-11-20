@@ -58,7 +58,7 @@ def guardar_precios_en_csv(precios, ruta_archivo):
 
 def get_sp500_tickers_yftickers():
     yft = YahooFinanceTickers()
-    tickers = yft.get_tickers("SP500")
+    tickers  = yft.get_tickers("SP500")
     return [
         t.strip().upper().replace(".", "-")
         for t in tickers
