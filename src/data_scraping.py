@@ -9,9 +9,10 @@ Se descarga un data frame de precios de mercado para un conjunto de empresas del
 se utiliza el método yf.download() para obtener datos históricos de precios de mercado para un conjunto de empresas del S&P 500. 
 El período de tiempo se establece, los datos se obtienen por el símbolo de la empresa.
 
-Las columnas del dataframe resultante contienen: Open (precio de la accion al inicio de la sesión), 
+Las columnas del dataframe resultante sin especificar indicador, contienen: Open (precio de la accion al inicio de la sesión), 
 High (precio más alto alcanzado durante la sesión), Low (precio más bajo alcanzado durante la sesión), 
-Close (precio de cierre de la sesión) y Volume (número de acciones negociadas durante la sesión).
+Close (precio de cierre de la sesión) y Volume (número de acciones negociadas durante la sesión), 
+Sin embargo, con tener close es suficiente, por lo que se filtrara dicho indicador.
 
 Dado que no se pueden descargar todos los datos de una sola vez, se hace un bucle para descargar en partes
 luego se unen en un solo dataframe.
@@ -21,25 +22,16 @@ periodo = "5y"
 espera = 2
 
 def descargar_precios_empresas(empresas, paso=paso, periodo=periodo, espera=espera):
-    """
-    Descarga los precios de mercado para un conjunto de empresas del S&P 500.
-
-    Args:
-        empresas (list): Lista de símbolos de las empresas.
-        paso (int): Número de empresas a descargar en cada iteración.
-        periodo (str): Período de tiempo para los datos históricos.
-        espera (int): Tiempo de espera entre descargas en segundos.
-
-    Returns:
-        pd.DataFrame: DataFrame con los precios de mercado descargados.
-    """
+    """Descarga solo el precio de cierre ('Close') de cada empresa."""
     precios = pd.DataFrame()
     for i in range(0, len(empresas), paso):
         sub_empresas = empresas[i:i + paso]
         print(f"Descargando precios para: {sub_empresas}")
         data = yf.download(sub_empresas, period=periodo, auto_adjust=True, group_by="ticker", progress=False)
-        precios = pd.concat([precios, data], axis=1)
-        time.sleep(espera)  
+        close = data.xs("Close", axis=1, level=1)
+        precios = pd.concat([precios, close], axis=1, sort=False)
+        time.sleep(espera)
+
     precios = precios.loc[:, ~precios.columns.duplicated()]
     return precios
 
