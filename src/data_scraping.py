@@ -1,67 +1,40 @@
-import time
-from pathlib import Path
-
 import pandas as pd
 import yfinance as yf
-from yftickers import YahooFinanceTickers
-"""
-Se descarga un data frame de precios de mercado para un conjunto de empresas del S&P 500 usando la librería yfinance.
-se utiliza el método yf.download() para obtener datos históricos de precios de mercado para un conjunto de empresas del S&P 500. 
-El período de tiempo se establece, los datos se obtienen por el símbolo de la empresa.
+from utils.logger import Logger
 
-Las columnas del dataframe resultante sin especificar indicador, contienen: Open (precio de la accion al inicio de la sesión), 
-High (precio más alto alcanzado durante la sesión), Low (precio más bajo alcanzado durante la sesión), 
-Close (precio de cierre de la sesión) y Volume (número de acciones negociadas durante la sesión), 
-Sin embargo, con tener close es suficiente, por lo que se filtrara dicho indicador.
 
-Dado que no se pueden descargar todos los datos de una sola vez, se hace un bucle para descargar en partes
-luego se unen en un solo dataframe.
-"""
-paso = 50
-periodo = "5y"
-espera = 2
-
-def descargar_precios_empresas(empresas, paso=paso, periodo=periodo, espera=espera):
-    """Descarga solo el precio de cierre ('Close') de cada empresa."""
-    precios = pd.DataFrame()
-    for i in range(0, len(empresas), paso):
-        sub_empresas = empresas[i:i + paso]
-        print(f"Descargando precios para: {sub_empresas}")
-        data = yf.download(sub_empresas, period=periodo, auto_adjust=True, group_by="ticker", progress=False)
-        close = data.xs("Close", axis=1, level=1)
-        precios = pd.concat([precios, close], axis=1, sort=False)
-        time.sleep(espera)
-
-    precios = precios.loc[:, ~precios.columns.duplicated()]
-    return precios
-
-def guardar_precios_en_csv(precios, ruta_archivo):
+def obtener_tickers_sp500() -> list[str]:
     """
-    Guarda los precios de mercado en un archivo CSV.
+    Obtiene y normaliza la lista vigente de tickers del S&P 500.
+
+    Returns:
+        list[str]: Una lista ordenada con todos los tickers vigentes del S&P 500.
+    """
+    url = "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+    df = pd.read_html(url, storage_options={"User-Agent": "Mozilla/5.0"})[0]
+    tickers = df["Symbol"].str.strip().str.upper().str.replace(".", "-", regex=False)
+    return sorted(tickers.unique().tolist())
+
+
+def descargar_precios(empresas: list[str], periodo: str = "5y") -> pd.DataFrame:
+    """
+    Descarga precios de cierre ajustados y elimina columnas vacías o duplicadas.
 
     Args:
-        precios (pd.DataFrame): DataFrame con los precios de mercado.
-        ruta_archivo (str): Ruta del archivo CSV donde se guardarán los datos.
+        empresas (list[str]): Lista de empresas de las cuales se van a descargar datos.
+        periodo (str): El plazo del cual se quieren descargar datos. Defaults to "5y".
+
+    Returns:
+        pd.DataFrame: Un DataFrame con los precios históricos limpios de columnas vacías.
     """
-    Path(ruta_archivo).parent.mkdir(parents=True, exist_ok=True)  
-    precios.to_csv(ruta_archivo)
-    print(f"Precios guardados en {ruta_archivo}")
-    
-
-def get_sp500_tickers_yftickers():
-    yft = YahooFinanceTickers()
-    tickers  = yft.get_tickers("SP500")
-    return [
-        t.strip().upper().replace(".", "-")
-        for t in tickers
-        if isinstance(t, str) and "." not in t.strip()
-    ]
-
-def main():
-    empresas = get_sp500_tickers_yftickers()   
-    print("Empresas:", len(empresas))
-    precios = descargar_precios_empresas(empresas)
-    guardar_precios_en_csv(precios, "data/raw/precios_empresas.csv")
-    
-if __name__ == "__main__":
-    main()
+    Logger.info(f"Descargando histórico ({periodo}) de {len(empresas)} empresas")
+    data = yf.download(
+        empresas,
+        period=periodo,
+        auto_adjust=True,
+        group_by="ticker",
+        threads=True,
+        progress=False,
+    )
+    precios = data.xs("Close", axis=1, level=1).dropna(axis=1, how="all")
+    return precios.loc[:, ~precios.columns.duplicated()].sort_index(axis=1)
