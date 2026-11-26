@@ -8,7 +8,7 @@ This project evaluates the financial health of S&P 500 companies by combining ma
 
 ## Authors
 
-- Álvaro Rizo González — A01643525
-- Eurico Alonso Pizá — A01613942
-- Miguel Frausto Mariscal — A01642693
-- Victor Alejandro Rojas Gamez — A01643296
+- Álvaro Rizo González 
+- Eurico Alonso Pizá 
+- Miguel Frausto Mariscal 
+- Victor Alejandro Rojas Gamez 
