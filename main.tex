@@ -1,0 +1,407 @@
+%% in the "Academic Journal on Computing, Engineering and Applied Mathematics
+%% from Universidade Federal do Tocatins, Brazil,
+%% https://sistemas.uft.edu.br/periodicos/index.php/AJCEAM/index
+%% This file was originally written by Tiago Almeida.
+%% First version: 2019-10-29
+%%
+%% History:
+%%           2019-10-29 - First version by Tiago Almeida <tiagoalmeida@uft.edu.br>
+%%           2020-03-17 - Second revision by Tiago Almeida <tiagoalmeida@uft.edu.br>
+%%           2020-04-09 - English revision by Caio Machado <caio.machado@uft.edu.br>
+%%           2022-09-13 - Third revision by Tiago Almeida <tiagoalmeida@uft.edu.br>
+%%
+
+% Options
+%     eng:   English Language
+%     por:   Portuguese Language
+%     blind: The version for reviewers is compiled (author data is hidden)
+
+
+\documentclass[eng]{ajceam-class}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{adjustbox} % Adds easy relative trimming
+\usepackage{xkeyval} % For advanced key-value options
+
+
+% Publication Title
+\title{Assessing the Financial Health and Risk of S\&P 500 Companies through PCA and Clustering: Beyond the Risk--Return Map}
+
+% Short title for the header (copy the main title if it is not too long)
+\shorttitle{Mapping S\&P 500 Risk and Return with PCA and Clustering}
+       
+% Authors
+\author[1]{Álvaro Rizo González}
+\author[2]{Eurico Alonso Pizá}
+\author[3]{Miguel Frausto Mariscal}
+\author[4]{Victor Alejandro Rojas Gamez}
+
+% Author Affiliations
+\affil{Tecnológico de Monterrey, Campus Guadalajara}
+
+% Surname of the first author of the manuscript
+\firstauthor{}
+
+%Contact Author Information
+\contactauthor{}           % Name and surname of the contact author
+\email{}            % Contact Author Email
+
+
+% Place your particular definitions here
+\newcommand{\vect}[1]{\mathbf{#1}}  % vectors
+
+% Insert here the abstract in English language
+\abstract{Evaluating the financial condition of publicly traded companies requires analyzing both market risk and fundamental accounting indicators, as traditional two-dimensional risk--return maps often overlook solvency, liquidity, and operational profitability. In this study, eleven financial and market-risk variables were collected via Yahoo Finance for 487 S\&P 500 companies over a five-year period. Principal Component Analysis (PCA) was applied to reduce dimensionality, retaining the first six principal components, which account for over 85\% of the total variance. Subsequently, K-means clustering was performed on the six components, identifying an optimal partition of $K = 2$ clusters (silhouette score of 0.288). This results in groups of 108 and 379 firms with a smaller, higher-return, higher-volatility profile concentrated in the Technology sector and a larger, more defensive group, all while demonstrating that a two-dimensional risk--return projection alone is insufficient to capture financial health.}
+
+% Insert here the keywords of your work in English language
+\keywords{
+PCA, clustering, K-means, S\&P 500, Yahoo Finance, Financial Health, Return, Dimensionality reduction.}
+
+
+% Start document
+\begin{document}
+
+% Include title, authors, abstract, etc.
+\maketitle
+\thispagestyle{fancy}
+\printcontactdata
+
+% Main body of manuscript
+\section{Introduction}
+
+A financially healthy company is defined as one that sustainably generates a profit and positive cash flow relative to volatility, keeping debt at a manageable level and having enough liquidity to cover short-term needs \cite{almansoor2023}.\\
+
+Yahoo Finance is a web platform that provides financial news alongside market valuations and general market data. It can be accessed through code using the Python library yfinance, which provides a wide range of parameters to which Principal Component Analysis (PCA) can be applied in order to reduce dimensionality while preserving most of the variance in the data \cite{aroussi2017}.\\
+
+The S\&P 500 is an index composed of the 500 most significant US companies. Because these companies are listed on the stock market, they can be characterized and compared in terms of their return and risk. With these metrics, companies can be grouped into four profiles: high return with low risk, high return with high risk, low return with low risk, and low return with high risk. Low-risk companies are often described as stable but not necessarily financially healthy \cite{sp500_2024}.\\
+
+Examining any single financial statistic or ratio in isolation or without important context can lead to incorrect conclusions regarding a company’s condition. For instance, a firm might exhibit high stability in its price volatility while, in reality, carrying a significant amount of debt relative to its equity. Principal Component Analysis (PCA) seeks to reduce the complexity of such an analysis by transforming correlated variables into a smaller number of orthogonal factors, based on the variance they explain \cite{caci2023}. Accordingly, the objective is to assess financial health using indicators such as return on equity, debt-to-equity ratio, current ratio, and profit margins retrieved via yfinance. This study combines these market-risk metrics and financial-health indicators, applies PCA for dimensionality reduction, and employs clustering techniques to categorize S\&P 500 companies into groups with similar risk and financial profiles \cite{almansoor2023}. The ultimate goal is to produce a risk–return map in which each company is represented as a data point, and to test empirically whether this two-dimensional map is sufficient to distinguish financially healthy companies from fragile ones. As the results will show, it is not.\\
+
+\section{Mathematical Foundations}
+
+\subsection{Principal Component Analysis}
+
+As previously mentioned, principal component analysis seeks to orthogonalize the variables present in a dataset to produce a smaller number of components that are independent of one another and, furthermore, are linear combinations of the original factors \cite{almansoor2023}, \cite{greenacre2022}.\\
+
+Suppose there are $p$ financial variables for $n$ companies.\\
+
+A matrix $X \in \mathbb{R}^{n \times p}$ is constructed from this information, assigning a specific column to each variable and a row to each company.\\
+
+Each variable $p$ has its own scale, which is an issue. For this reason, the data are standardized according to the following equation:\\
+
+{\large \[ z_{ij}=\frac{x_{ij}-\bar{x}_j}{s_j} \]}\\
+
+Where:\\
+$x_{ij}$ is the original value,\\
+$\bar{x}_j$ is the original mean of the variable,\\
+$s_j$ is the original standard deviation of the variable, and\\
+$z_{ij}$ is the standardized value.\\
+
+Now, to understand the relationships between the variables, a covariance matrix is applied:\\
+
+{\large \[ S=\frac{1}{n-1}Z^TZ \]}\\
+
+Where:\\
+$Z$ is the standardized matrix, and $Z^T$ is its transpose.\\
+
+The value of the dot product of two variables tends to be positive when they are positively correlated, whereas it is negative when they are opposed.\\
+
+A square matrix yields $p$ distinct eigenvalues ($\lambda$). These must be arranged as follows:\\
+
+{\large \[ \lambda_1 \geq \lambda_2 \geq \dots \geq \lambda_p \]}\\
+
+Each eigenvalue $\lambda_j$ has an associated unit-length eigenvector $v_j \in \mathbb{R}^{p}$, satisfying the relation:\\
+
+{\large$$Sv_j = \lambda_j v_j$$}\\
+
+Where:\\
+$S$ is the covariance matrix,\\
+$\lambda_j$ represents the fraction of the variance captured by the principal component $j$, and\\
+$v_j$ defines the direction of that component.\\
+
+Because the covariance matrix $S$ is symmetric, its eigenvectors are mutually orthogonal, ensuring that the resulting components are uncorrelated:\\
+
+{\large$$v_i^T v_j = 0 \quad \text{for all } i \neq j$$}\\
+
+To achieve dimensionality reduction, only the first $k$ components ($k < p$) that capture a decent proportion of the total variance are retained. The proportion of variance explained by each component is determined as follows:\\
+
+{\large$$\text{EV}_j = \frac{\lambda_j}{\sum_{m=1}^{p} \lambda_m}$$}\\
+
+Once $k$ is selected, a projection matrix $W \in \mathbb{R}^{p \times k}$ is formed by placing the first $k$ eigenvectors side by side as columns:\\
+
+{\large$$W = \begin{bmatrix} v_1 & v_2 & \dots & v_k \end{bmatrix}$$}\\
+
+Finally, the original standardized dataset is projected onto this new subspace to obtain the matrix of principal components $Y \in \mathbb{R}^{n \times k}$:\\
+
+{\large$$Y = ZW$$}\\
+
+Where:\\
+$Z$ is the standardized data matrix,\\
+$W$ is the matrix of selected eigenvectors, and\\
+$Y$ is the transformed matrix containing the $k$ orthogonal principal components for each of the $n$ companies.\\
+
+\cite{greenacre2022},\cite{caci2023}.
+
+\subsection{Partitioning}
+
+K-means partition is an unsupervised, therefore Machine Learning, method; it groups the firms into K distinct clusters. Its objective is to minimize the sum of squared distances of the firms to the center of the cluster they belong to:\\
+
+{\large$$\mathcal{J} = \sum_{c=1}^{K} \sum_{\mathbf{t}_i \in C_c} \left\| \mathbf{t}_i - \mu_c \right\|_2^2$$}\\
+
+This can be carried out through multiple iterations using a computer, in order to perfect the partition \cite{almansoor2023}.
+
+\subsection{Silhouette Score}
+
+To evaluate the quality of the partition, the silhouette score is used. For each point $i$, let $a(i)$ be the average distance to all other points in its own cluster, and $b(i)$ the average distance to all points in the nearest neighboring cluster. The silhouette of point $i$ is defined as
+\begin{equation}
+s(i) = \frac{b(i) - a(i)}{\max\{a(i), b(i)\}}
+\label{eq:silhouette_point}
+\end{equation}
+where $s(i) \in [-1, 1]$. The overall silhouette score is the mean over all $n$ observations:
+\begin{equation}
+S = \frac{1}{n} \sum_{i=1}^{n} s(i)
+\label{eq:silhouette_mean}
+\end{equation}
+A value close to $+1$ indicates that the point is well matched to its own cluster and poorly matched to neighboring clusters, whereas values near $0$ indicate boundary points.
+
+\section{Data and Methodology}
+
+The utilized data was acquired and fitted through Python ($pipeline\_pca\_completo.py$). The code is divided into four main objectives.
+
+\subsection{Data Acquisition and Preprocessing}
+
+The first part consisted of scraping the data, utilizing Wikipedia to gather the tickers of the 500 companies. Then, with the yfinance library, five years of closing stock valuation were extracted, applying an early filter excluding firms with less than 80\% of the data, totaling 487 companies. In addition to that, the parameters: Annual Return, Annual Volatility, Sharpe Ratio, Max Drawdown, Debt-to-Equity, Current Ratio, Return on Equity, Return on Assets, Net Margin, Beta and Price-to-Earnings Ratio were selected for the dataset.\\
+
+For any company with minor gaps in its information, data obtained from either before or after the gap was used.
+
+\subsection{Table of Variables}
+
+\begin{table}[htbp]
+\centering
+\caption{Financial and Risk Variables}
+\label{tab:financial_variables}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\columnwidth}{@{} l l >{\raggedright\arraybackslash}X @{}}
+\toprule
+\textbf{Variable Name} & \textbf{Category} & \textbf{Mathematical / Accounting Definition} \\
+\midrule
+Annual\_Return & Market Return & $\text{mean}(r_t) \times 252$ \\
+Annual\_Volatility & Market Risk & $\text{std}(r_t) \times \sqrt{252}$ \\
+Sharpe\_Ratio & Risk-Adjusted & $(\text{Annual return} - 0.04) / \text{Annual volatility}$ \\
+Max\_Drawdown & Downside Risk & $\min_t[(V_t - \max_{\tau \leq t} V_\tau) / \max_{\tau \leq t} V_\tau]$ \\
+Debt\_to\_Equity & Solvency & Total Liabilities / Shareholders' Equity \\
+Current\_Ratio & Liquidity & Current Assets / Current Liabilities \\
+ROE & Profitability & Net Income / Shareholders' Equity \\
+ROA & Profitability & Net Income / Total Assets \\
+Net\_Margin & Profitability & Net Income / Total Revenue \\
+Beta & Systematic Risk & $\text{Cov}(r_i, r_m) / \text{Var}(r_m)$ \\
+PER & Valuation & Share Price / Trailing Earnings Per Share \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\cite{aroussi2017}.
+
+\subsection{Applicability}
+
+After finalizing the database, it was crucial to prove that PCA can be applied; for this, the correlation matrix needs to be calculated, and the parameters are required to be correlated, as otherwise it would be impossible to use the data. And the result of the correlation matrix for the 11 variables is the following:\\
+
+\begin{figure}[H]
+    \centering
+    % Use \columnwidth instead of \textwidth so it fits a single column
+    \includegraphics[width=\columnwidth]{01_matriz_correlacion.png}
+    \caption{A comparison of 11 financial and risk metrics across the S\&P 500 companies, highlighting the diverse relations variables have with each other.}
+    \label{fig:one-col}
+\end{figure}
+
+A significant amount of noise can be observed in the results, as all the variables show slight correlations with one another.\\
+
+The Kaiser–Meyer–Olkin (KMO) measure of sampling adequacy was 0.611 and Bartlett's test of sphericity was significant, confirming that the correlation matrix is suitable for PCA.
+
+\section{Further Methodology and Results}
+
+\subsection{Variance Explained per Component and Scree Plot}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{05_varianza_y_scree.png}
+    \caption{The bar chart shows the variance explained by each individual component. The connected scatterplot above displays the cumulative variance obtained by adding all components up to that point.}
+    \label{fig:placeholder}
+\end{figure}
+
+When examining the variance explained by each component, it is notable that each successive component accounts for a smaller proportion of the variance, without any major steps visible. The cumulative variance appears as a smooth curve too.\\
+
+\begin{figure} [H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{scree.png}
+    \caption{The graph is a scree plot, which shows the eigenvalue corresponding to each component. It is compared against the Kaiser criterion, which recommends using all components with a value greater than 1.}
+    \label{fig:placeholder}
+\end{figure}
+
+The scree plot shows the eigenvalue for each component within the original variable space; this corresponds to the radius of the maximum extent along each orthogonal direction in the space where the variables were distributed. According to the Kaiser criterion, using four components would be advisable.
+
+Both graphs suggest that the ideal is to use around 6 components, as they explain more than 85\% of the variance.
+
+\subsection{Component Loading and Heatmap}
+
+To verify the dependencies of each component and determine what they mean, we made a new correlation heat map.
+
+
+
+\begin{table}[H]
+  \centering
+  \caption{Principal component loadings (correlations between original financial variables and PC1--PC6).}
+  \label{tab:pca_loadings}
+  \scriptsize
+  \setlength{\tabcolsep}{2.5pt}
+  \begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}} l r r r r r r @{}}
+    \toprule
+    \textbf{Financial Variable} & \textbf{PC1} & \textbf{PC2} & \textbf{PC3} & \textbf{PC4} & \textbf{PC5} & \textbf{PC6} \\
+    \midrule
+    Annual Return     & 0.71  & 0.44           & $-0.47$        & 0.18           & $-0.14$        & $-0.02$ \\
+    Annual Volatility & 0.78  & $-0.51$ & $-0.01$      & 0.19           & $-0.11$        & $-0.06$ \\
+    Sharpe Ratio      & 0.48           & 0.64  & $-0.54$ & 0.14         & $-0.11$        & 0.01 \\
+    Max Drawdown      & $-0.40$        & 0.77  & $-0.32$        & $-0.10$        & 0.04           & 0.09 \\
+    Debt to Equity    & $-0.15$        & 0.23           & 0.37           & \textbf{0.76}  & 0.06           & 0.25 \\
+    Current Ratio     & 0.50  & $-0.21$        & $-0.06$        & $-0.48$        & 0.04           & 0.64 \\
+    ROE               & 0.45           & 0.48           & 0.54  & 0.24           & 0.23           & 0.08 \\
+    ROA               & 0.53  & 0.39           & 0.40           & $-0.26$        & 0.33           & 0.01 \\
+    Net Margin        & 0.34           & 0.40           & 0.38           & $-0.44$        & $-0.05$        & $-0.38$ \\
+    Beta              & \textbf{0.73}  & $-0.38$        & 0.07           & 0.19           & $-0.17$        & $-0.12$ \\
+    PER               & 0.14           & $-0.32$        & $-0.46$        & 0.11           & \textbf{0.77}  & $-0.15$ \\
+    \bottomrule
+  \end{tabular*}
+\end{table}
+
+Turned into a heatmap for more clarity.
+
+\begin{figure} [H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{06_heatmap_cargas_pca.png}
+    \caption{PCA charges heatmap}
+    \label{fig:placeholder}
+\end{figure}
+
+The clearest observations regarding what each variable contributes to the principal components vary from one variable to another.\\
+
+PC1 is notable because it correlates significant risks, such as volatility and beta (which is essentially volatility relative to other companies), with greater rewards, such as annual returns. PC2 differs by focusing on other aspects, such as the maximum declines experienced by the company (Max\_Drawdown), as well as shareholder returns (ROE) and operational efficiency (ROA).\\
+
+PC3 contrasts a company’s success with its stock price movement; PC4 measures debt; PC5 is based almost exclusively on stock valuation; and PC6 indicates whether the company is capable of paying off its debts over short periods.
+
+\subsection{Clustering}
+
+For the definition of number of clusters, the Silhouette score was calculated considering the number of clusters and components.
+
+\begin{figure} [H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{05_heatmap_silhouette_pc_k.png}
+    \caption{Heatmap of silhouette score}
+    \label{fig:placeholder}
+\end{figure}
+
+As previously discussed, six principal components were selected as optimal since they exceed the 85\% explained variance threshold. Although the silhouette score is higher when using two clusters with only two principal components, using fewer components may lead to substantial information loss, artificially inflating cluster compactness. To prevent this distortion, the dataset was partitioned into two clusters with six principal components, where the silhouette score reaches its maximum (0.288) for this dimensionality.
+
+\subsection{Biplot Graph}
+ The following figure presents the companies in the space of the first two principal components. Rather than risk and return, these axes represent a linear combination of the 11 variables, whose weights are detailed in Table 2. 
+ 
+ \begin{figure} [H]
+     \centering
+     \includegraphics[width=0.75\linewidth]{04b_biplot_pca.png}
+     \caption{Biplot for PCA most influential components}
+     \label{fig:placeholder}
+ \end{figure}
+ 
+ However, our thesis does not aim to analyze the dispersion on the components as axes, but the result of the return against risk, as neither is defined by a single component, but by a parameter, the representation is the following.
+
+\begin{figure} [H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{04_mapa_riesgo_retorno.png}
+    \caption{Risk Return graph}
+    \label{fig:placeholder}
+\end{figure}
+
+As shown in this figure, using risk and return alone as parameters is insufficient to clearly distinguish the clusters; companies in cluster 0 are scattered across the plot. This indicates that financial health is not determined by the company's risk and return alone, even though these may be the most influential dimensions.
+
+\subsection{Financial Profile and Sector Composition}
+
+The clusters have a division by sector and financial profile; the profile differentiation is given by the average for each parameter of the companies that make the cluster, applying the z score. Specifically, cluster 0 shows positive z-scores in return, volatility, liquidity, and profitability metrics, whereas cluster 1 reflects more moderate or negative values in those same dimensions.
+
+\begin{figure} [H]
+    \centering
+    \includegraphics[width=0.55\linewidth]{07_heatmap_zscore_clusters.png}
+    \caption{Z score}
+    \label{fig:placeholder}
+\end{figure}
+
+The sector also shows a segregation, with cluster 0 concentrating a larger share of Technology firms compared to the broader distribution in cluster 1.
+
+\begin{figure} [H]
+    \centering
+    \includegraphics[width=0.75\linewidth]{08_composicion_sectorial.png}
+    \caption{Sectors per cluster}
+    \label{fig:placeholder}
+\end{figure}
+
+
+\section{Discussion and Conclusions}
+
+The analysis shows that PCA was able to reduce the eleven financial and market indicators into a smaller set of components while retaining a useful representation of the differences between S\&P 500 companies. The first six principal components explain more than 85.0\% of the total variance and were used as the subspace for clustering. For visualization, the risk and return axes were implemented since they are conventionally considered the most representative market metrics.\\
+
+Restricting the partition to the selected six principal components, a maximum silhouette score of 0.288 was obtained with two clusters ($K = 2$). The final groups contain 108 and 379 companies, respectively. When projected onto the two-dimensional risk--return graph, the clusters overlap rather than forming fully separated regions, which proves that market risk and return alone do not dictate financial health, as underlying factors such as leverage, liquidity, and profitability also shape the grouping. Moreover, their financial profiles suggest a distinction between a smaller group with higher returns and greater market risk and a larger group with lower returns and volatility. The sector distribution, and specifically the concentration of Technology companies in cluster 0, provides additional context for interpreting these results.\\
+
+However, the moderate silhouette score indicates that the separation between clusters is not rigid and that several companies lie close to the boundary between both profiles, reflecting the continuous nature of financial ratios across the S\&P 500 as well as the sensitivity of accounting metrics to extreme values. Because of this, the groups should be interpreted as general structural patterns rather than definitive classifications of financial health. In general, PCA and K-means have provided a useful way to summarize and visualize the relationship between financial performance and market risk across the selected companies. Future work could compare clustering with different numbers of principal components, test alternative algorithms, and examine whether these profiles remain stable across different market periods.
+
+% Include references
+\section*{Acknowledgment}
+The authors acknowledge the School of Engineering and Sciences at Tecnológico de Monterrey, Campus Guadalajara, for academic support within the course \textit{Analysis of Mathematical Methods for Physics} (F1009), as well as the open-source Python scientific ecosystem (\texttt{scikit-learn}, \texttt{pandas}, \texttt{scipy}, \texttt{seaborn}, and \texttt{yfinance}).
+
+\begin{thebibliography}{9}
+
+\bibitem{almansoor2023}
+A.~S. Al-Mansoor and M.~S. Al-Khazaleh, ``A comprehensive survey on the applications of machine learning and principal component analysis in financial markets,'' \textit{Artificial Intelligence Review}, vol.~56, pp. 4215--4258, 2023, doi: 10.1007/s10462-022-10297-z.
+
+\bibitem{aroussi2017}
+R.~Aroussi, \textit{yfinance: Download market data from Yahoo! Finance's API}. GitHub, 2017. [Online]. Available: https://github.com/ranaroussi/yfinance
+
+\bibitem{sp500_2024}
+S\&P Dow Jones Indices, ``S\&P 500: The Gauge of the U.S. Equities Market,'' S\&P Global, New York, NY, USA, Tech. Rep., 2024. [Online]. Available: \url{https://www.spglobal.com/spdji/en/documents/additional-material/sp-500-brochure.pdf}
+
+\bibitem{greenacre2022}
+M.~Greenacre, P.~J.~F. Groenen, T.~Hastie, A.~I. D'Enza, A.~Markos, and E.~Tuzhilina, ``Principal component analysis,'' \textit{Nature Reviews Methods Primers}, vol.~2, no.~1, Art. no.~100, Dec. 2022, doi: 10.1038/s43586-022-00184-w.
+
+\bibitem{caci2023}
+B.~Caci, ``Principal component analysis: A useful tool for researchers,'' \textit{Metrics}, vol.~2, no.~3, Art. no.~33, 2023, doi: 10.3390/metrics2030033.
+
+\bibitem{wang2022}
+R.~Wang, J.~Li, and Y.~Zhang, ``Robust principal component analysis and loading interpretation for multivariate data with outliers,'' \textit{Journal of Chemometrics}, vol.~36, no.~6, Art. no.~e3405, Jun. 2022, doi: 10.1002/cem.3405.
+
+\bibitem{forni2025}
+M.~Forni, M.~Hallin, M.~Lippi, and P.~Zaffaroni, ``Principal components in high-dimensional financial and economic panels,'' \textit{Economics Letters}, vol.~256, Art. no.~112648, 2025, doi: 10.1016/j.econlet.2025.112648.
+
+\bibitem{harris2020}
+C.~R. Harris \textit{et al.}, ``Array programming with NumPy,'' \textit{Nature}, vol.~585, no.~7825, pp.~357--362, Sep. 2020, doi: 10.1038/s41586-020-2649-2.
+
+\bibitem{mckinney2010}
+W.~McKinney, ``Data structures for statistical computing in Python,'' in \textit{Proc. 9th Python Sci. Conf.}, Austin, TX, USA, Jun. 2010, pp.~56--61, doi: 10.25080/Majora-92bf1922-00a.
+
+\bibitem{virtanen2020}
+P.~Virtanen \textit{et al.}, ``SciPy 1.0: Fundamental algorithms for scientific computing in Python,'' \textit{Nature Methods}, vol.~17, no.~3, pp.~261--272, Feb. 2020, doi: 10.1038/s41592-019-0686-2.
+
+\bibitem{pedregosa2011}
+F.~Pedregosa \textit{et al.}, ``Scikit-learn: Machine learning in Python,'' \textit{J. Mach. Learn. Res.}, vol.~12, pp.~2825--2830, Oct. 2011.
+
+\bibitem{hunter2007}
+J.~D. Hunter, ``Matplotlib: A 2D graphics environment,'' \textit{Comput. Sci. Eng.}, vol.~9, no.~3, pp.~90--95, May/Jun. 2007, doi: 10.1109/MCSE.2007.55.
+
+\bibitem{waskom2021}
+M.~L. Waskom, ``seaborn: statistical data visualization,'' \textit{J. Open Source Softw.}, vol.~6, no.~60, Art. no.~3021, Apr. 2021, doi: 10.21105/joss.03021.
+
+\bibitem{biggs2022}
+J.~Biggs and N.~Madnani, \textit{factor\_analyzer: A Python module to perform exploratory and confirmatory factor analyses}. Educational Testing Service, 2022. [Online]. Available: https://github.com/EducationalTestingService/factor\_analyzer
+
+\end{thebibliography}
+
+\insertbibliography{References}
+
+\end{document}
