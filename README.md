@@ -1,6 +1,6 @@
 # Assessing the Financial Health and Risk of S&P 500 Companies through PCA and Clustering
 
-Implementation of the paper *"Assessing the Financial Health and Risk of S&P 500 Companies through PCA and Clustering: Beyond the Risk-Return Map"* (F1009 – Analysis of Mathematical Methods for Physics, Tecnológico de Monterrey, Campus Guadalajara).
+Implementation of the final project. *"Assessing the Financial Health and Risk of S&P 500 Companies through PCA and Clustering: Beyond the Risk-Return Map"* (F1009 – Analysis of Mathematical Methods for Physics, Tecnológico de Monterrey, Campus Guadalajara). The full synthesis of the project is available in the [final PDF](final/sp500-financial-health-pca-clustering.pdf).
 
 ## Overview
 
